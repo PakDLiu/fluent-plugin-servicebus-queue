@@ -28,7 +28,17 @@ module Fluent::Plugin
       read = chunk.read()
       split = read.split("\n")
 
-      request = createRequest
+      url = "https://ucs-service-bus.servicebus.windows.net/colomanager-to-rp/messages"
+      keyValue = getAccessKeyValue
+      token = generateToken(url, "send", keyValue)
+
+      uri = URI.parse(url)
+      https = Net::HTTP.new(uri.host, uri.port)
+      https.use_ssl = true
+      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      request = Net::HTTP::Post.new(uri.request_uri)
+      request['Content-Type'] = 'application/json'
+      request['Authorization'] = token
 
       split.each do |line|
         log.debug "processing line: ", line
@@ -41,22 +51,6 @@ module Fluent::Plugin
     # method for custom format
     def format(tag, time, record)
       @formatter.format(tag, time, record).chomp + "\n"
-    end
-
-    def createRequest()
-      url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
-      keyValue = getAccessKeyValue
-      token = generateToken(url, accessKeyName, keyValue)
-
-      uri = URI.parse(url)
-      https = Net::HTTP.new(uri.host, uri.port)
-      https.use_ssl = true
-      https.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      request = Net::HTTP::Post.new(uri.request_uri)
-      request['Content-Type'] = 'application/json'
-      request['Authorization'] = token
-
-      request
     end
 
     def getAccessKeyValue
