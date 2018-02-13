@@ -1,36 +1,26 @@
 require 'fluent/plugin/output'
-require "cgi"
+require 'cgi'
 require 'openssl'
-require "base64"
+require 'base64'
 require 'net/http'
 
 module Fluent::Plugin
   class AzureServicebusQueue < Output
     Fluent::Plugin.register_output("azure_servicebus_queue", self)
 
-    helpers :formatter, :compat_parameters
-
     config_param :namespace, :string
     config_param :queueName, :string
     config_param :accessKeyName, :string
     config_param :accessKeyValueFile, :string
-
-    attr_accessor :formatter
-
-    def configure(conf)
-      compat_parameters_convert(conf, :formatter)
-      super
-      @formatter = formatter_create
-    end
 
     # method for sync buffered output mode
     def write(chunk)
       read = chunk.read()
       split = read.split("\n")
 
-      url = "https://ucs-service-bus.servicebus.windows.net/colomanager-to-rp/messages"
+      url = "https://#{namespace}.servicebus.windows.net/#{queueName}/messages"
       keyValue = getAccessKeyValue
-      token = generateToken(url, "send", keyValue)
+      token = generateToken(url, accessKeyName, keyValue)
 
       uri = URI.parse(url)
       https = Net::HTTP.new(uri.host, uri.port)
@@ -40,17 +30,10 @@ module Fluent::Plugin
       request['Content-Type'] = 'application/json'
       request['Authorization'] = token
 
-      split.each do |line|
-        log.debug "processing line: ", line
-
-        request.body = line
+      chunk.each do |time, record|
+        request.body = record["message"]
         https.request(request)
       end
-    end
-
-    # method for custom format
-    def format(tag, time, record)
-      @formatter.format(tag, time, record).chomp + "\n"
     end
 
     def getAccessKeyValue

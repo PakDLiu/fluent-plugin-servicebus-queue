@@ -41,17 +41,4 @@ class AzureServicebusQueueTest < Test::Unit::TestCase
         assert_equal 'send', d.instance.accessKeyName
         assert_equal '/etc/password/queuePassword', d.instance.accessKeyValueFile
     end
-
-    def test_format
-        d = create_driver
-    
-        d.run(default_tag: "test") do
-          d.feed({"a"=>1})
-          d.feed({"a"=>2})
-        end
-        formatted = d.formatted
-    
-        assert_equal "{\"a\":1}\n", formatted[0]
-        assert_equal "{\"a\":2}\n", formatted[1]
-    end
 end
