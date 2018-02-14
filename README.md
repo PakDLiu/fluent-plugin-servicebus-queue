@@ -15,11 +15,12 @@
         queueName queueName
         accessKeyName send
         accessKeyValueFile /etc/password/queuePassword
+        timeToLive 60
         <buffer>
             @type memory
             flush_interval 1s
         </buffer>
     </match>
 
-Will send records to Azure Service Bus Queue with namespace of servicebusNamespace with queue name of queueName. Will use Shared access policy named send and the Primary/Secondary key in a file located in /etc/password/queuePassword.
+Will send records to Azure Service Bus Queue with namespace of servicebusNamespace with queue name of queueName. Will use Shared access policy named send and the Primary/Secondary key in a file located in /etc/password/queuePassword with a time to live of one minute.
 

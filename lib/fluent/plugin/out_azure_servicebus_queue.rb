@@ -12,6 +12,7 @@ module Fluent::Plugin
     config_param :queueName, :string
     config_param :accessKeyName, :string
     config_param :accessKeyValueFile, :string
+    config_param :timeToLive, :int
 
     # method for sync buffered output mode
     def write(chunk)
@@ -29,6 +30,7 @@ module Fluent::Plugin
       request = Net::HTTP::Post.new(uri.request_uri)
       request['Content-Type'] = 'application/json'
       request['Authorization'] = token
+      request['BrokerProperties'] = "{\"Label\":\"fluentd\",\"State\":\"Active\",\"TimeToLive\":#{timeToLive}}"
 
       chunk.each do |time, record|
         request.body = record["message"]
