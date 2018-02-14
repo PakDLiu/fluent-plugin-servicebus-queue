@@ -12,7 +12,7 @@ module Fluent::Plugin
     config_param :queueName, :string
     config_param :accessKeyName, :string
     config_param :accessKeyValueFile, :string
-    config_param :timeToLive, :int
+    config_param :timeToLive, :integer
 
     # method for sync buffered output mode
     def write(chunk)
